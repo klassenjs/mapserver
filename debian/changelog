@@ -1,3 +1,10 @@
+mapserver (6.2.1-4.1) UNRELEASED; urgency=low
+
+  * Non-maintainer upload.
+  * Add support for default mapfile.
+
+ -- James Klassen <jklassen@sharedgeo.org>  Tue, 28 Jan 2014 19:35:07 -0600
+
 mapserver (6.2.1-4) unstable; urgency=low
 
   * Use pkgkde-gensymbols & pkgkde-symbolshelper to handle C++ symbols.
