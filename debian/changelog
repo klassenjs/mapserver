@@ -1,3 +1,10 @@
+mapserver (6.4.1-1.1) UNRELEASED; urgency=low
+
+  * Non-maintainer upload.
+  * Add in Defaut Mapfile Patch.
+
+ -- James Klassen <jklassen@sharedgeo.org>  Wed, 29 Jan 2014 01:01:46 -0600
+
 mapserver (6.4.1-1) unstable; urgency=low
 
   * New upstream release, fixes a vulnerability leading to potential leakage of
