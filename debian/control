@@ -24,8 +24,8 @@ Build-Depends: debhelper (>= 9),
                php5-dev,
                swig,
                libperl-dev,
-               python-all (>= 2.6.6-3~),
-               python-all-dev (>= 2.6.6-3~),
+               python-all (>= 2.7.3),
+               python-all-dev (>= 2.7.3),
                ruby1.9.1,
                ruby1.9.1-dev,
                libfcgi-dev,
@@ -41,6 +41,7 @@ Build-Depends: debhelper (>= 9),
                xsltproc
 Build-Conflicts: libcurl3-openssl-dev
 XS-Ruby-Versions: ruby1.9.1
+XS-Python-Version: 2.7
 Standards-Version: 3.9.5
 Vcs-Browser: http://anonscm.debian.org/gitweb/?p=pkg-grass/mapserver.git
 Vcs-Git: git://anonscm.debian.org/pkg-grass/mapserver.git
