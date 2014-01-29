@@ -6801,9 +6801,9 @@ mapObj *msLoadMap(char *filename, char *new_mappath)
    char *default_mapfile;
    
     if( (default_mapfile = getenv("MS_DEFAULT_MAPFILE")) ) {
-         fprintf(stderr, "found default mapfile %s", default_mapfile);
+         msDebug("msLoadMap(): found default mapfile %s", default_mapfile);
          map = msLoadMap2( NULL, default_mapfile, new_mappath );
-         if(map) fprintf(stderr, " Success.\n");
+         if(map) msDebug("msLoadMap(): Success.\n");
     }
        map = msLoadMap2( map, filename, new_mappath );
        return map;
