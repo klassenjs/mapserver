@@ -1302,9 +1302,9 @@ static int loadProjection(projectionObj *p)
 #ifdef USE_PROJ
 
   if ( p->proj != NULL ) {
-    msSetError(MS_MISCERR, "Projection is already initialized. Multiple projection definitions are not allowed in this object. (line %d)",
-               "loadProjection()", msyylineno);
-    return(-1);
+    /* Allow projection to be re-defined */
+    pj_free(p->proj);
+    p->proj = NULL;
   }
 
   for(;;) {
@@ -5977,9 +5977,8 @@ mapObj *msLoadMapFromString(char *buffer, char *new_mappath)
 /*
 ** Sets up file-based mapfile loading and calls loadMapInternal to do the work.
 */
-mapObj *msLoadMap(char *filename, char *new_mappath)
+mapObj *msLoadMap2(mapObj *map, char *filename, char *new_mappath)
 {
-  mapObj *map;
   struct mstimeval starttime, endtime;
   char szPath[MS_MAXPATHLEN], szCWDPath[MS_MAXPATHLEN];
   int debuglevel;
@@ -6011,12 +6010,14 @@ mapObj *msLoadMap(char *filename, char *new_mappath)
   /*
   ** Allocate mapObj structure
   */
-  map = (mapObj *)calloc(sizeof(mapObj),1);
-  MS_CHECK_ALLOC(map, sizeof(mapObj), NULL);
+  if(map == NULL) {
+    map = (mapObj *)calloc(sizeof(mapObj),1);
+    MS_CHECK_ALLOC(map, sizeof(mapObj), NULL);
 
-  if(initMap(map) == -1) { /* initialize this map */
-    msFree(map);
-    return(NULL);
+    if(initMap(map) == -1) { /* initialize this map */
+      msFree(map);
+      return(NULL);
+    }
   }
 
   msAcquireLock( TLOCK_PARSER );  /* Steve: might need to move this lock a bit higher; Umberto: done */
@@ -6093,6 +6094,24 @@ mapObj *msLoadMap(char *filename, char *new_mappath)
 
   return map;
 }
+
+/* Replacement msLoadMap which loads defaults from MS_DEFAULT_MAPFILE
+** before loading the user specified mapfile
+*/
+mapObj *msLoadMap(char *filename, char *new_mappath)
+{
+   mapObj* map = NULL;
+   char *default_mapfile;
+   
+    if( (default_mapfile = getenv("MS_DEFAULT_MAPFILE")) ) {
+         fprintf(stderr, "found default mapfile %s", default_mapfile);
+         map = msLoadMap2( NULL, default_mapfile, new_mappath );
+         if(map) fprintf(stderr, " Success.\n");
+    }
+       map = msLoadMap2( map, filename, new_mappath );
+       return map;
+}
+
 
 /*
 ** Loads mapfile snippets via a URL (only via the CGI so don't worry about thread locks)
