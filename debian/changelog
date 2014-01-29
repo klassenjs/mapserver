@@ -1,9 +1,10 @@
-mapserver (6.2.1-4.1) UNRELEASED; urgency=low
+mapserver (6.2.1-4.2) UNRELEASED; urgency=low
 
   * Non-maintainer upload.
   * Add support for default mapfile.
+  * Update default mapfile to use msDebug().
 
- -- James Klassen <jklassen@sharedgeo.org>  Tue, 28 Jan 2014 19:35:07 -0600
+ -- James Klassen <jklassen@sharedgeo.org>  Tue, 28 Jan 2014 23:45:48 -0600
 
 mapserver (6.2.1-4) unstable; urgency=low
 
