@@ -1272,12 +1272,11 @@ static void writeGrid(FILE *stream, int indent, graticuleObj *pGraticule) {
 static int loadProjection(projectionObj *p) {
   p->gt.need_geotransform = MS_FALSE;
 
-  if (p->proj != NULL || p->numargs != 0) {
-    msSetError(MS_MISCERR,
-               "Projection is already initialized. Multiple projection "
-               "definitions are not allowed in this object. (line %d)",
-               "loadProjection()", msyylineno);
-    return (-1);
+  if ( p->proj != NULL || p->numargs != 0 ) {
+    /* Allow projection to be re-defined */
+    if ( p->proj != NULL )
+      msFreeProjection(p);
+    msInitProjection(p);
   }
 
   for (;;) {
@@ -7009,10 +7008,10 @@ mapObj *msLoadMapFromString(char *buffer, char *new_mappath,
 /*
 ** Sets up file-based mapfile loading and calls loadMapInternal to do the work.
 */
-mapObj *msLoadMap(const char *filename, const char *new_mappath,
-                  const configObj *config) {
-  mapObj *map;
-  struct mstimeval starttime = {0}, endtime = {0};
+mapObj *msLoadMap2(mapObj *map,
+                   const char *filename, const char *new_mappath,
+                   const configObj *config) {
+  struct mstimeval starttime={0}, endtime={0};
   char szPath[MS_MAXPATHLEN], szCWDPath[MS_MAXPATHLEN];
   int debuglevel;
 
@@ -7038,12 +7037,14 @@ mapObj *msLoadMap(const char *filename, const char *new_mappath,
   /*
   ** Allocate mapObj structure
   */
-  map = (mapObj *)calloc(sizeof(mapObj), 1);
-  MS_CHECK_ALLOC(map, sizeof(mapObj), NULL);
+  if(map == NULL) {
+    map = (mapObj *)calloc(sizeof(mapObj), 1);
+    MS_CHECK_ALLOC(map, sizeof(mapObj), NULL);
 
-  if (initMap(map) == -1) { /* initialize this map */
-    msFreeMap(map);
-    return (NULL);
+    if(initMap(map) == -1) { /* initialize this map */
+      msFreeMap(map);
+      return(NULL);
+    }
   }
 
   map->config = config; // create a read-only reference
@@ -7134,6 +7135,27 @@ mapObj *msLoadMap(const char *filename, const char *new_mappath,
 
   return map;
 }
+
+/* Replacement msLoadMap which loads defaults from MS_DEFAULT_MAPFILE
+** before loading the user specified mapfile
+*/
+mapObj *msLoadMap(const char *filename, const char *new_mappath,
+                  const configObj *config) {
+  mapObj* map = NULL;
+  char *default_mapfile;
+  debugLevel debuglevel = msGetGlobalDebugLevel();
+
+  if( (default_mapfile = getenv("MS_DEFAULT_MAPFILE")) ) {
+    if (debuglevel >= MS_DEBUGLEVEL_TUNING)
+      msDebug("msLoadMap(): found default mapfile %s", default_mapfile);
+    map = msLoadMap2(NULL, default_mapfile, new_mappath, config);
+    if (map && debuglevel >= MS_DEBUGLEVEL_TUNING) 
+      msDebug("msLoadMap(): Success.\n");
+  }
+  map = msLoadMap2(map, filename, new_mappath, config);
+  return map;
+}
+
 
 static void hashTableSubstituteString(hashTableObj *hash, const char *from,
                                       const char *to) {
