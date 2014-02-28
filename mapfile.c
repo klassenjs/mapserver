@@ -6562,9 +6562,11 @@ mapObj *msLoadMap(char *filename, char *new_mappath)
    char *default_mapfile;
    
     if( (default_mapfile = getenv("MS_DEFAULT_MAPFILE")) ) {
-         msDebug("msLoadMap(): found default mapfile %s", default_mapfile);
+         if (debuglevel >= MS_DEBUGLEVEL_TUNING)
+           msDebug("msLoadMap(): found default mapfile %s", default_mapfile);
          map = msLoadMap2( NULL, default_mapfile, new_mappath );
-         if(map) msDebug("msLoadMap(): Success.\n");
+         if (map && debuglevel >= MS_DEBUGLEVEL_TUNING) 
+           msDebug("msLoadMap(): Success.\n");
     }
        map = msLoadMap2( map, filename, new_mappath );
        return map;
