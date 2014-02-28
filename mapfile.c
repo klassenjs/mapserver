@@ -6558,8 +6558,11 @@ mapObj *msLoadMap2(mapObj *map, char *filename, char *new_mappath)
 */
 mapObj *msLoadMap(char *filename, char *new_mappath)
 {
-   mapObj* map = NULL;
-   char *default_mapfile;
+    mapObj* map = NULL;
+    char *default_mapfile;
+    int debuglevel;
+
+    debuglevel = (int)msGetGlobalDebugLevel();
    
     if( (default_mapfile = getenv("MS_DEFAULT_MAPFILE")) ) {
          if (debuglevel >= MS_DEBUGLEVEL_TUNING)
