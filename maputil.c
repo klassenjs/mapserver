@@ -2587,9 +2587,11 @@ char *msBuildOnlineResource(mapObj *map, cgiRequestObj *req) {
   char *online_resource = NULL;
   const char *value, *hostname, *port, *script, *protocol = "http",
                                                 *mapparam = NULL;
+  const char *script_uri;
   char **hostname_array = NULL;
   int mapparam_len = 0, hostname_array_len = 0;
 
+  script_uri = getenv("SCRIPT_URI"); /* Set to logical URI if using Apache mod_rewrite */
   hostname = getenv("HTTP_X_FORWARDED_HOST");
   if (!hostname)
     hostname = getenv("SERVER_NAME");
@@ -2629,7 +2631,17 @@ char *msBuildOnlineResource(mapObj *map, cgiRequestObj *req) {
     }
   }
 
-  if (hostname && port && script) {
+  if ( script_uri ) { /* If called via Apache mod_rewrite */
+    size_t buffer_size;
+    buffer_size = strlen(script_uri)+mapparam_len+2; /* 2 comes from [script_uri]?[map]\0, i.e. "?\0" */
+    online_resource = (char*)msSmallMalloc(buffer_size);
+    snprintf(online_resource, buffer_size, "%s?", script_uri);
+    if(mapparam) {
+      int baselen;
+      baselen = strlen(online_resource);
+      snprintf(online_resource+baselen, buffer_size-baselen, "map=%s&", mapparam);
+    }
+  } else if (hostname && port && script) {
     size_t buffer_size;
     buffer_size =
         strlen(hostname) + strlen(port) + strlen(script) + mapparam_len +
