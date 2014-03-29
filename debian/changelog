@@ -1,9 +1,14 @@
-mapserver (6.4.1-1.1) UNRELEASED; urgency=low
+mapserver (6.4.1-1.2) UNRELEASED; urgency=low
 
+  [ James Klassen ]
   * Non-maintainer upload.
   * Add in Defaut Mapfile Patch.
 
- -- James Klassen <jklassen@sharedgeo.org>  Wed, 29 Jan 2014 01:01:46 -0600
+  [ James Klassen ]
+  * Add SCRIPT_URI Patch.
+  * Remove debug messages from Mapfile Patch.
+
+ -- James Klassen <klassen.js@gmail.com>  Fri, 28 Mar 2014 22:40:57 -0500
 
 mapserver (6.4.1-1) unstable; urgency=low
 
