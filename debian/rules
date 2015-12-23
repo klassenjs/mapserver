@@ -1,4 +1,4 @@
-#!/usr/bin/make -f
+#!/srv/compass/apps/mapserver/bin/make -f
 # Made with the aid of debmake, by Christoph Lameter,
 # based on the sample debian/rules file for GNU hello by Ian Jackson.
 
@@ -28,7 +28,7 @@ MS_VERSION=$(shell dpkg-parsechangelog | sed -ne 's/^Version: \(.*\)-.*/\1/p')
 
 MAKE_VERBOSE=1
 
-COMMON_CONFIG=	-DCMAKE_INSTALL_PREFIX=/usr \
+COMMON_CONFIG=	-DCMAKE_INSTALL_PREFIX=/srv/compass/apps/mapserver \
 		-DWITH_PROJ=1 \
 		-DWITH_KML=1 \
 		-DWITH_SOS=1 \
@@ -99,19 +99,19 @@ override_dh_auto_test:
 override_dh_auto_install:
 	$(MAKE) -C build install DESTDIR=$(CURDIR)/debian/tmp VERBOSE=$(MAKE_VERBOSE)
 
-	-mkdir -p $(CURDIR)/debian/tmp/usr/lib/$(DEB_HOST_MULTIARCH)/
-	-mv -v $(CURDIR)/debian/tmp/usr/lib/libmapserver*.so* $(CURDIR)/debian/tmp/usr/lib/$(DEB_HOST_MULTIARCH)/
-	-sed -i "s/lib\/libmapserver/lib\/$(DEB_HOST_MULTIARCH)\/libmapserver/g" $(CURDIR)/debian/tmp/usr/share/*/cmake/*.cmake
+	-mkdir -p $(CURDIR)/debian/tmp/srv/compass/apps/mapserver/lib/$(DEB_HOST_MULTIARCH)/
+	-mv -v $(CURDIR)/debian/tmp/srv/compass/apps/mapserver/lib/libmapserver*.so* $(CURDIR)/debian/tmp/srv/compass/apps/mapserver/lib/$(DEB_HOST_MULTIARCH)/
+	-sed -i "s/lib\/libmapserver/lib\/$(DEB_HOST_MULTIARCH)\/libmapserver/g" $(CURDIR)/debian/tmp/srv/compass/apps/mapserver/share/*/cmake/*.cmake
 
 	# removing embedded rpath in binaries
-	-find $(CURDIR)/debian/tmp/usr/bin -type f -exec chrpath --delete {} \;
+	-find $(CURDIR)/debian/tmp/srv/compass/apps/mapserver/bin -type f -exec chrpath --delete {} \;
 
 	# removing embedded rpath in libraries
-	-find $(CURDIR)/debian/tmp/usr/lib -name "*.so*" -type f -exec chrpath --delete {} \;
+	-find $(CURDIR)/debian/tmp/srv/compass/apps/mapserver/lib -name "*.so*" -type f -exec chrpath --delete {} \;
 
 	# CGI mapserver
-	-mkdir -p debian/tmp/usr/lib/cgi-bin
-	install -m755 debian/tmp/usr/bin/mapserv debian/tmp/usr/lib/cgi-bin/mapserv
+	-mkdir -p debian/tmp/srv/compass/apps/mapserver/lib/cgi-bin
+	install -m755 debian/tmp/srv/compass/apps/mapserver/bin/mapserv debian/tmp/srv/compass/apps/mapserver/lib/cgi-bin/mapserv
 
 	# PHP mapscript
 	echo 'misc:Depends=phpapi-'$(PHP5API) >> debian/php5-mapscript.substvars
@@ -125,7 +125,7 @@ override_dh_installchangelogs:
 override_dh_installexamples:
 	dh_installexamples
 
-	chmod a-x $(CURDIR)/debian/php*-mapscript/usr/share/doc/php*-mapscript/examples/*.phtml
+	chmod a-x $(CURDIR)/debian/php*-mapscript/srv/compass/apps/mapserver/share/doc/php*-mapscript/examples/*.phtml
 
 override_dh_install:
 	dh_install --autodest --list-missing
