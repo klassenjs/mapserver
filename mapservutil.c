@@ -155,6 +155,7 @@ mapObj *msCGILoadMap(mapservObj *mapserv, configObj *config)
 
   int ms_mapfile_tainted = MS_TRUE;
   const char *ms_mapfile = CPLGetConfigOption("MS_MAPFILE", NULL);
+  const char *ms_force_mapfile = CPLGetConfigOption("MS_FORCE_MAPFILE", NULL);
 
   const char *ms_map_no_path = CPLGetConfigOption("MS_MAP_NO_PATH", NULL);
   const char *ms_map_pattern = CPLGetConfigOption("MS_MAP_PATTERN", NULL);
@@ -164,50 +165,54 @@ mapObj *msCGILoadMap(mapservObj *mapserv, configObj *config)
 
   const char *map_value = NULL;
 
-  if(mapserv->request->api_path != NULL) {
-    map_value = mapserv->request->api_path[0]; /* mapfile is *always* in the first position (/{mapfile}/{signature}) of an API call */
+  if(ms_force_mapfile != NULL) {
+    ms_mapfile = ms_force_mapfile;
   } else {
-    for(i=0; i<mapserv->request->NumParams; i++) { /* find the map parameter */
-      if(strcasecmp(mapserv->request->ParamNames[i], "map") == 0) {
-        map_value = mapserv->request->ParamValues[i];
-        break;
+    if(mapserv->request->api_path != NULL) {
+      map_value = mapserv->request->api_path[0]; /* mapfile is *always* in the first position (/{mapfile}/{signature}) of an API call */
+    } else {
+      for(i=0; i<mapserv->request->NumParams; i++) { /* find the map parameter */
+        if(strcasecmp(mapserv->request->ParamNames[i], "map") == 0) {
+          map_value = mapserv->request->ParamValues[i];
+          break;
+        }
       }
     }
-  }
 
-  if(map_value == NULL) {
-    if(ms_mapfile == NULL) {
-      msSetError(MS_WEBERR, "CGI variable \"map\" is not set.", "msCGILoadMap()"); /* no default, outta here */
-      return NULL;
-    }
-    ms_mapfile_tainted = MS_FALSE;
-  } else {
-    ms_mapfile = msConfigGetMap(config, map_value); /* does NOT check the environment, only the config */
-    if(ms_mapfile) {
-      ms_mapfile_tainted = MS_FALSE;
-    } else {
-      /* by now we know the map parameter isn't referencing something in the configuration */
-      if(ms_map_no_path != NULL) {
-        msSetError(MS_WEBERR, "CGI variable \"map\" not found in configuration and this server is not configured for full paths.", "msCGILoadMap()");
+    if(map_value == NULL) {
+      if(ms_mapfile == NULL) {
+        msSetError(MS_WEBERR, "CGI variable \"map\" is not set.", "msCGILoadMap()"); /* no default, outta here */
         return NULL;
       }
-      ms_mapfile = map_value;
+      ms_mapfile_tainted = MS_FALSE;
+    } else {
+      ms_mapfile = msConfigGetMap(config, map_value); /* does NOT check the environment, only the config */
+      if(ms_mapfile) {
+        ms_mapfile_tainted = MS_FALSE;
+      } else {
+        /* by now we know the map parameter isn't referencing something in the configuration */
+        if(ms_map_no_path != NULL) {
+          msSetError(MS_WEBERR, "CGI variable \"map\" not found in configuration and this server is not configured for full paths.", "msCGILoadMap()");
+          return NULL;
+        }
+        ms_mapfile = map_value;
+      }
     }
-  }
 
-  /* validate ms_mapfile if tainted */
-  if(ms_mapfile_tainted == MS_TRUE) {
-    if(ms_map_pattern == NULL) { // can't go any further, bail
-      msSetError(MS_WEBERR, "Required configuration value MS_MAP_PATTERN not set.", "msCGILoadMap()");
-      return NULL;
-    }
-    if(msIsValidRegex(ms_map_bad_pattern) == MS_FALSE || msEvalRegex(ms_map_bad_pattern, ms_mapfile) == MS_TRUE) {
-      msSetError(MS_WEBERR, "CGI variable \"map\" fails to validate.", "msCGILoadMap()");
-      return NULL;
-    }
-    if(msEvalRegex(ms_map_pattern, ms_mapfile) != MS_TRUE) {
-      msSetError(MS_WEBERR, "CGI variable \"map\" fails to validate.", "msCGILoadMap()");
-      return NULL;
+    /* validate ms_mapfile if tainted */
+    if(ms_mapfile_tainted == MS_TRUE) {
+      if(ms_map_pattern == NULL) { // can't go any further, bail
+        msSetError(MS_WEBERR, "Required configuration value MS_MAP_PATTERN not set.", "msCGILoadMap()");
+        return NULL;
+      }
+      if(msIsValidRegex(ms_map_bad_pattern) == MS_FALSE || msEvalRegex(ms_map_bad_pattern, ms_mapfile) == MS_TRUE) {
+        msSetError(MS_WEBERR, "CGI variable \"map\" fails to validate.", "msCGILoadMap()");
+        return NULL;
+      }
+      if(msEvalRegex(ms_map_pattern, ms_mapfile) != MS_TRUE) {
+        msSetError(MS_WEBERR, "CGI variable \"map\" fails to validate.", "msCGILoadMap()");
+        return NULL;
+      }
     }
   }
 

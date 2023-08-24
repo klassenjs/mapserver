@@ -256,7 +256,8 @@ int main(int argc, char *argv[])
     mapserv->sendheaders = sendheaders; /* override the default if necessary (via command line -nh switch) */
 
     mapserv->request->NumParams = loadParams(mapserv->request, NULL, NULL, 0, NULL);
-    if(msCGIIsAPIRequest(mapserv) == MS_FALSE && mapserv->request->NumParams == -1) { /* no QUERY_STRING or PATH_INFO */
+    //if(msCGIIsAPIRequest(mapserv) == MS_FALSE && mapserv->request->NumParams == -1) { /* no QUERY_STRING or PATH_INFO */
+    if(mapserv->request->NumParams == -1) { /* no QUERY_STRING or PATH_INFO */
       msCGIWriteError(mapserv);
       goto end_request;
     }
