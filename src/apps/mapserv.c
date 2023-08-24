@@ -264,7 +264,7 @@ int main(int argc, char *argv[]) {
     mapserv->request->NumParams =
         loadParams(mapserv->request, NULL, NULL, 0, NULL);
 
-    if (msCGIIsAPIRequest(mapserv) == MS_FALSE &&
+    if (/*msCGIIsAPIRequest(mapserv) == MS_FALSE &&*/
         mapserv->request->NumParams == -1) { /* no QUERY_STRING or PATH_INFO */
       if (ms_index_dir != NULL) {
         // return the landing page
