@@ -1927,7 +1927,7 @@ typedef struct {
 /************************************************************************/
 
 #define MS_LEGEND_KEYSIZE_MIN 5
-#define MS_LEGEND_KEYSIZE_MAX 200
+#define MS_LEGEND_KEYSIZE_MAX 1000
 #define MS_LEGEND_KEYSPACING_MIN 0
 #define MS_LEGEND_KEYSPACING_MAX 50
 
@@ -2874,6 +2874,7 @@ MS_DLL_EXPORT char *msJoinStrings(char **array, int arrayLength,
                                   const char *delimeter);
 MS_DLL_EXPORT char *msHashString(const char *pszStr);
 MS_DLL_EXPORT char *msCommifyString(char *str);
+MS_DLL_EXPORT char *msToString(const char *format, double value);
 MS_DLL_EXPORT int msHexToInt(char *hex);
 MS_DLL_EXPORT char *msGetEncodedString(const char *string,
                                        const char *encoding);
@@ -3277,6 +3278,10 @@ rectObj msUVRASTERGetSearchRect(layerObj *layer, mapObj *map);
 /*      Prototypes for functions in mapdraw.c                           */
 /* ==================================================================== */
 
+MS_DLL_EXPORT double msGetGeoCellSize(const mapObj *map);
+MS_DLL_EXPORT void msUpdateClassScaleFactor(double geo_cellsize,
+                                            const mapObj *map,
+                                            const layerObj *layer, classObj *c);
 MS_DLL_EXPORT imageObj *msPrepareImage(mapObj *map, int allow_nonsquare);
 MS_DLL_EXPORT imageObj *msDrawMap(mapObj *map, int querymap);
 MS_DLL_EXPORT int msLayerIsVisible(mapObj *map, layerObj *layer);

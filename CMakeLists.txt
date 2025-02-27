@@ -17,7 +17,7 @@ include(CheckCSourceCompiles)
 
 set (MapServer_VERSION_MAJOR 8)
 set (MapServer_VERSION_MINOR 2)
-set (MapServer_VERSION_REVISION 0)
+set (MapServer_VERSION_REVISION 2)
 set (MapServer_VERSION_SUFFIX "")
 
 # Set C++ version
@@ -1135,7 +1135,6 @@ option(BUILD_TESTING "Build unit test" ON)
 if(BUILD_DYNAMIC AND BUILD_TESTING)
     enable_testing()
     add_executable(unit_test tests/unit/test.cpp)
-    target_include_directories(unit_test PRIVATE src)
     target_link_libraries(unit_test PRIVATE mapserver)
     add_test(NAME unit_test COMMAND unit_test)
 endif()

@@ -54,7 +54,7 @@ int msInterpolationDataset(mapObj *map, imageObj *image,
                            layerObj *interpolation_layer, void **hDSvoid,
                            void **cleanup_ptr) {
 
-  int status, layer_idx, i, nclasses = 0, npoints = 0, length = 0;
+  int status, layer_idx, i, npoints = 0, length = 0;
   rectObj searchrect;
   shapeObj shape;
   layerObj *layer = NULL;
@@ -64,7 +64,6 @@ int msInterpolationDataset(mapObj *map, imageObj *image,
   unsigned char *iValues;
   GDALDatasetH hDS;
   interpolationProcessingParams interpParams;
-  int *classgroup = NULL;
 
   memset(&interpParams, 0, sizeof(interpParams));
 
@@ -153,6 +152,8 @@ int msInterpolationDataset(mapObj *map, imageObj *image,
   /* nothing to do */
   if (status == MS_SUCCESS) { /* at least one sample may have overlapped */
 
+    int nclasses = 0;
+    int *classgroup = NULL;
     if (layer->classgroup && layer->numclasses > 0)
       classgroup = msAllocateValidClassGroups(layer, &nclasses);
 
@@ -220,6 +221,9 @@ int msInterpolationDataset(mapObj *map, imageObj *image,
     nextshape:
       msFreeShape(&shape);
     }
+
+    msFree(classgroup);
+
     // number of layer points.
     npoints = length / 3;
   } else if (status != MS_DONE) {
@@ -253,22 +257,38 @@ int msInterpolationDataset(mapObj *map, imageObj *image,
   free(values);
   free(xyz_values);
 
+  GDALDriverH hMemDRV = GDALGetDriverByName("MEM");
+  if (!hMemDRV) {
+    msSetError(MS_IOERR, "GDAL MEM driver not available",
+               "msInterpolationDataset()");
+    free(iValues);
+    return MS_FAILURE;
+  }
+
+  hDS = GDALCreate(hMemDRV, "", image->width, image->height, 0, 0, NULL);
+  if (hDS == NULL) {
+    msSetError(MS_IMGERR, "Unable to create GDAL Memory dataset.",
+               "msInterpolationDataset()");
+    free(iValues);
+    return MS_FAILURE;
+  }
+
   char pointer[64];
-  char ds_string[1024];
-  double adfGeoTransform[6];
   memset(pointer, 0, sizeof(pointer));
   CPLPrintPointer(pointer, iValues, sizeof(pointer));
-  snprintf(ds_string, 1024,
-           "MEM:::DATAPOINTER=%s,PIXELS=%d,LINES=%d,BANDS=1,DATATYPE=Byte,"
-           "PIXELOFFSET=1,LINEOFFSET=%d",
-           pointer, image->width, image->height, image->width);
-  hDS = GDALOpenShared(ds_string, GA_ReadOnly);
-  if (hDS == NULL) {
-    msSetError(MS_MISCERR, "msInterpolationDataset()",
-               "failed to create in-memory gdal dataset for interpolated data");
-    status = MS_FAILURE;
+
+  char **papszOptions = CSLSetNameValue(NULL, "DATAPOINTER", pointer);
+  CPLErr eErr = GDALAddBand(hDS, GDT_Byte, papszOptions);
+  CSLDestroy(papszOptions);
+  if (eErr != CE_None) {
+    msSetError(MS_IMGERR, "Unable to add band to GDAL Memory dataset.",
+               "msInterpolationDataset()");
     free(iValues);
+    GDALClose(hDS);
+    return MS_FAILURE;
   }
+
+  double adfGeoTransform[6];
   adfGeoTransform[0] = map->extent.minx - map->cellsize * 0.5; /* top left x */
   adfGeoTransform[1] = map->cellsize; /* w-e pixel resolution */
   adfGeoTransform[2] = 0;             /* 0 */
